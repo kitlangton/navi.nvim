@@ -81,10 +81,7 @@ assert(vim.api.nvim_get_commands({}).NaviTest, "expected :NaviTest command")
 vim.api.nvim_buf_set_lines(buffer, 0, 0, false, { "// inserted above the test" })
 vim.api.nvim_exec_autocmds("TextChanged", { buffer = buffer })
 marks = vim.api.nvim_buf_get_extmarks(buffer, evidence.ns, 0, -1, { details = true })
-assert_equal(marks[1][2], 3, "stale evidence follows inserted lines")
-assert_equal(marks[1][4].virt_lines[1][1][1], "  ○ ", "stale icon")
-assert_equal(marks[1][4].virt_lines[1][2][1], "stale test evidence", "stale label")
-assert_equal(marks[1][4].virt_lines[2][1][1], "    │ first value 1", "stale evidence retains output")
+assert_equal(#marks, 0, "source edits clear evidence")
 
 local runs = 0
 client.run_tree = function()
@@ -108,7 +105,20 @@ assert_equal(marks[1][4].virt_lines[5][1][1], "    │ Received 2", "second fail
 
 result.status = "passed"
 result.errors = nil
+client.run_tree = function()
+  vim.api.nvim_buf_set_lines(buffer, 0, 0, false, { "// changed during run" })
+end
+evidence.run()
+table.remove(tasks, 1)()
+marks = vim.api.nvim_buf_get_extmarks(buffer, evidence.ns, 0, -1, { details = true })
+assert_equal(#marks, 0, "mid-run edits discard evidence")
+
+vim.api.nvim_buf_set_lines(buffer, 0, 1, false, {})
+vim.bo[buffer].modified = false
 runs = 0
+client.run_tree = function()
+  runs = runs + 1
+end
 evidence.run()
 evidence.run()
 table.remove(tasks, 2)()

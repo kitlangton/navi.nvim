@@ -41,7 +41,7 @@ The agent loads a verified tour with `:NaviLoad /absolute/path/to/tour.json`; th
 - Uses numbered signs and a count-only `current/total` winbar for multi-stop tours.
 - Provides Telescope and built-in pickers plus an explicit clear command.
 - Optionally runs the nearest Neotest test and renders its status, failures, and console output beneath the test.
-- Marks inline test evidence stale as soon as its source buffer changes.
+- Clears inline test evidence as soon as its source buffer changes.
 - Leaves mappings entirely under user control.
 
 ## Requirements
@@ -138,7 +138,7 @@ vim.keymap.set("n", "<leader>Te", function()
 end, { desc = "Test inline evidence" })
 ```
 
-Navi renders the structured pass or failure status beneath the test. For Vitest, captured `console.log` and `console.error` blocks appear as concise detail lines, making the test itself usable as executable tutorial documentation. Any edit to the buffer marks the prior output as stale until the test runs again. Navi refuses to collect evidence from an unsaved buffer and marks a result stale if its source changes while the test is running.
+Navi renders the structured pass or failure status beneath the test. For Vitest, captured `console.log` and `console.error` blocks appear as concise detail lines, making the test itself usable as executable tutorial documentation. Any edit to the buffer clears prior evidence. Navi refuses to run an unsaved buffer and discards a result if its source changes while the test is running, so visible evidence always describes the current source.
 
 ## JSON schema
 

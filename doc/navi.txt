@@ -110,9 +110,9 @@ Navi includes an optional Neotest consumer. Register it in Neotest's setup: >lua
 This creates |:NaviTest|. The command runs the nearest test and renders its
 status and concise output beneath the test with virtual lines. Vitest stdout
 and stderr blocks include console.log() and console.error() output. Editing the
-buffer marks prior evidence stale until another run completes. Navi refuses to
-run an unsaved buffer and marks results stale when the source changes while the
-test is running.
+buffer clears prior evidence. Navi refuses to run an unsaved buffer and
+discards results when the source changes while the test is running. Therefore,
+visible evidence always describes the current source.
 
 The integration requires Neotest, nvim-nio, and an adapter. They remain
 optional; source tours have no required dependencies.

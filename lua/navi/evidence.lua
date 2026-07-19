@@ -5,7 +5,6 @@ M.ns = vim.api.nvim_create_namespace("navi-evidence")
 local nio
 local files
 local client
-local evidence = {}
 local next_request = 0
 local requests = {}
 
@@ -39,21 +38,20 @@ local function render(buffer, row, status, name, details)
     return
   end
 
-  local icons = { running = "◌", passed = "✓", failed = "✗", skipped = "○", stale = "○" }
+  local icons = { running = "◌", passed = "✓", failed = "✗", skipped = "○" }
   local highlights = {
     running = "DiagnosticInfo",
     passed = "DiagnosticOk",
     failed = "DiagnosticError",
     skipped = "DiagnosticWarn",
-    stale = "Comment",
   }
   local virtual_lines = {
-    { { "  " .. icons[status] .. " ", highlights[status] }, { name, status == "stale" and "Comment" or "Normal" } },
+    { { "  " .. icons[status] .. " ", highlights[status] }, { name, "Normal" } },
   }
 
   for _, line in ipairs(details or {}) do
     table.insert(virtual_lines, {
-      { "    │ " .. line, status == "stale" and "Comment" or "DiagnosticVirtualTextInfo" },
+      { "    │ " .. line, "DiagnosticVirtualTextInfo" },
     })
   end
 
@@ -69,28 +67,10 @@ local function tracked_row(buffer, mark, fallback)
   return position[1] or fallback
 end
 
-local function remember(buffer, row, details, changedtick, mark, stale)
-  evidence[buffer] = {
-    changedtick = changedtick or vim.api.nvim_buf_get_changedtick(buffer),
-    details = details,
-    mark = mark,
-    row = row,
-    stale = stale or false,
-  }
-end
-
-local function mark_stale(buffer)
-  local state = evidence[buffer]
-  if not state or state.stale or not buffer_alive(buffer) then
-    return
+local function clear(buffer)
+  if buffer_alive(buffer) then
+    vim.api.nvim_buf_clear_namespace(buffer, M.ns, 0, -1)
   end
-  if vim.api.nvim_buf_get_changedtick(buffer) == state.changedtick then
-    return
-  end
-
-  state.row = tracked_row(buffer, state.mark, state.row)
-  state.stale = true
-  state.mark = render(buffer, state.row, "stale", "stale test evidence", state.details)
 end
 
 local function initialize(consumer_client)
@@ -102,13 +82,12 @@ local function initialize(consumer_client)
   vim.api.nvim_create_autocmd({ "TextChanged", "TextChangedI" }, {
     group = group,
     callback = function(event)
-      mark_stale(event.buf)
+      clear(event.buf)
     end,
   })
   vim.api.nvim_create_autocmd({ "BufDelete", "BufUnload" }, {
     group = group,
     callback = function(event)
-      evidence[event.buf] = nil
       requests[event.buf] = nil
     end,
   })
@@ -153,7 +132,6 @@ function M.run()
     if requests[buffer] ~= request or not buffer_alive(buffer) then
       return
     end
-    evidence[buffer] = nil
     local mark = render(buffer, end_row, "running", position.name)
 
     client:run_tree(tree, { adapter = adapter })
@@ -174,12 +152,12 @@ function M.run()
     if requests[buffer] ~= request or not buffer_alive(buffer) then
       return
     end
+    if vim.api.nvim_buf_get_changedtick(buffer) ~= changedtick then
+      clear(buffer)
+      return
+    end
     local result_row = tracked_row(buffer, mark, end_row)
-    local stale = vim.api.nvim_buf_get_changedtick(buffer) ~= changedtick
-    local status = stale and "stale" or result.status
-    local name = stale and "stale test evidence" or position.name
-    local result_mark = render(buffer, result_row, status, name, details)
-    remember(buffer, result_row, details, changedtick, result_mark, stale)
+    render(buffer, result_row, result.status, position.name, details)
   end)
 end
 
