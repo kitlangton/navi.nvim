@@ -8,6 +8,29 @@ A small Neovim companion for JSON-defined source tours. Navi opens each stop, ma
 
 Navi has no required dependencies. If [Telescope](https://github.com/nvim-telescope/telescope.nvim) is available, `:NaviPick` uses it; otherwise it uses `vim.ui.select`.
 
+## Agent-driven walkthroughs
+
+Navi is the presentation layer in a larger agent-driven walkthrough stack:
+
+- [Terminal Control](https://github.com/anomalyco/terminal-control) gives an agent such as OpenCode a shared, visible Neovim PTY that the user can watch and control.
+- The installable [Terminal Control skill](https://github.com/anomalyco/terminal-control/tree/main/skills/terminal-control) teaches the agent how to inspect the visible screen, send input, wait for rendered state, and capture evidence.
+- The installable [Code Walkthrough skill](https://github.com/kitlangton/skills/tree/main/skills/code-walkthrough) is the workflow: verify the code and output, author one immutable Navi tour, then present it through the shared terminal session.
+
+Install the agent skills:
+
+```sh
+npx skills add anomalyco/terminal-control --skill terminal-control
+npx skills add kitlangton/skills --skill code-walkthrough
+```
+
+The walkthrough skill expects `termctrl`, Neovim 0.10 or newer, and Navi. Once they are available, an agent can launch the shared editor from the canonical project directory:
+
+```sh
+termctrl run walkthrough --cwd /path/to/project -- nvim
+```
+
+The agent loads a verified tour with `:NaviLoad /absolute/path/to/tour.json`; the user follows it in the same Neovim session. See the Code Walkthrough skill for the complete authoring, verification, presentation, and cleanup procedure.
+
 ## Features
 
 - Resolves symlinks and compares real paths when matching stops to buffers.
