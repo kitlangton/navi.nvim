@@ -104,8 +104,8 @@ vim.opt.runtimepath:prepend(vim.fn.expand("~/path/to/navi.nvim"))
 Navi does not create global mappings. Optional mappings can call either the commands or Lua API:
 
 ```lua
-vim.keymap.set("n", "]n", "<Cmd>NaviNext<CR>", { desc = "Next Navi stop" })
-vim.keymap.set("n", "[n", "<Cmd>NaviPrev<CR>", { desc = "Previous Navi stop" })
+vim.keymap.set("n", "<Tab>", "<Cmd>NaviNext<CR>", { desc = "Next Navi stop" })
+vim.keymap.set("n", "<S-Tab>", "<Cmd>NaviPrev<CR>", { desc = "Previous Navi stop" })
 vim.keymap.set("n", "<leader>np", "<Cmd>NaviPick<CR>", { desc = "Pick Navi stop" })
 vim.keymap.set("n", "<leader>nc", "<Cmd>NaviClear<CR>", { desc = "Clear Navi tour" })
 ```
