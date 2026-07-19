@@ -7,8 +7,10 @@ Navi is a dependency-free Neovim plugin for navigating JSON-defined source tours
 ## Layout
 
 - `lua/navi/init.lua`: tour state, navigation, rendering, signs, and public Lua API.
+- `lua/navi/evidence.lua`: optional Neotest consumer for inline, freshness-aware test evidence.
 - `plugin/navi.lua`: automatically loaded user-command definitions.
 - `tests/navi.lua`: headless integration tests using only Neovim APIs.
+- `tests/evidence.lua`: dependency-stubbed Neotest consumer integration tests.
 - `scripts/test`: portable test entry point.
 
 ## Development

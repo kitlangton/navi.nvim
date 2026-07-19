@@ -40,6 +40,8 @@ The agent loads a verified tour with `:NaviLoad /absolute/path/to/tour.json`; th
 - Uses an asterisk sign and no winbar for a one-stop tour.
 - Uses numbered signs and a count-only `current/total` winbar for multi-stop tours.
 - Provides Telescope and built-in pickers plus an explicit clear command.
+- Optionally runs the nearest Neotest test and renders its status, failures, and console output beneath the test.
+- Marks inline test evidence stale as soon as its source buffer changes.
 - Leaves mappings entirely under user control.
 
 ## Requirements
@@ -100,6 +102,7 @@ vim.opt.runtimepath:prepend(vim.fn.expand("~/path/to/navi.nvim"))
 | `:NaviPrev` | Go to the previous stop. |
 | `:NaviPick` | Select any stop with Telescope or `vim.ui.select`. |
 | `:NaviClear` | End the tour, remove its signs and virtual lines, and restore the prior winbar. |
+| `:NaviTest` | Run the nearest test and render concise evidence inline. Available after configuring the optional Neotest consumer. |
 
 Navi does not create global mappings. Optional mappings can call either the commands or Lua API:
 
@@ -109,6 +112,33 @@ vim.keymap.set("n", "<S-Tab>", "<Cmd>NaviPrev<CR>", { desc = "Previous Navi stop
 vim.keymap.set("n", "<leader>np", "<Cmd>NaviPick<CR>", { desc = "Pick Navi stop" })
 vim.keymap.set("n", "<leader>nc", "<Cmd>NaviClear<CR>", { desc = "Clear Navi tour" })
 ```
+
+## Inline test evidence
+
+Navi can use [Neotest](https://github.com/nvim-neotest/neotest) and an installed adapter to turn tests into executable examples. This integration is optional; source tours retain no required dependencies.
+
+Register Navi as a Neotest consumer:
+
+```lua
+require("neotest").setup({
+  adapters = {
+    require("neotest-vitest")({}),
+  },
+  consumers = {
+    navi = require("navi.evidence"),
+  },
+})
+```
+
+Run the nearest test with `:NaviTest` or map the consumer directly:
+
+```lua
+vim.keymap.set("n", "<leader>Te", function()
+  require("neotest").navi.run()
+end, { desc = "Test inline evidence" })
+```
+
+Navi renders the structured pass or failure status beneath the test. For Vitest, captured `console.log` and `console.error` blocks appear as concise detail lines, making the test itself usable as executable tutorial documentation. Any edit to the buffer marks the prior output as stale until the test runs again. Navi refuses to collect evidence from an unsaved buffer and marks a result stale if its source changes while the test is running.
 
 ## JSON schema
 

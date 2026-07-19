@@ -7,7 +7,8 @@ CONTENTS                                                         *navi-contents*
 2. Commands ................................................... |navi-commands|
 3. Tour format ................................................. |navi-format|
 4. Lua API ......................................................... |navi-api|
-5. Mappings .................................................... |navi-mappings|
+5. Test evidence ............................................... |navi-evidence|
+6. Mappings .................................................... |navi-mappings|
 
 ==============================================================================
 INTRODUCTION                                                        *navi-intro*
@@ -35,6 +36,11 @@ COMMANDS                                                          *navi-commands
                                                     *:NaviClear*
 :NaviClear         End the tour, remove Navi decoration, and restore the
                    originating window's previous winbar.
+
+                                                    *:NaviTest*
+:NaviTest          Run the nearest Neotest position and render its result and
+                   captured console output beneath the test. Available after
+                   configuring |navi-evidence|.
 
 ==============================================================================
 TOUR FORMAT                                                        *navi-format*
@@ -88,6 +94,30 @@ The normalized active state is available as require("navi").stops and
 require("navi").current.
 
 ==============================================================================
+TEST EVIDENCE                                                     *navi-evidence*
+
+Navi includes an optional Neotest consumer. Register it in Neotest's setup: >lua
+  require("neotest").setup({
+    adapters = {
+      require("neotest-vitest")({}),
+    },
+    consumers = {
+      navi = require("navi.evidence"),
+    },
+  })
+<
+
+This creates |:NaviTest|. The command runs the nearest test and renders its
+status and concise output beneath the test with virtual lines. Vitest stdout
+and stderr blocks include console.log() and console.error() output. Editing the
+buffer marks prior evidence stale until another run completes. Navi refuses to
+run an unsaved buffer and marks results stale when the source changes while the
+test is running.
+
+The integration requires Neotest, nvim-nio, and an adapter. They remain
+optional; source tours have no required dependencies.
+
+==============================================================================
 MAPPINGS                                                          *navi-mappings*
 
 Navi creates no mappings. Optional examples: >lua
@@ -95,6 +125,9 @@ Navi creates no mappings. Optional examples: >lua
   vim.keymap.set("n", "<S-Tab>", "<Cmd>NaviPrev<CR>")
   vim.keymap.set("n", "<leader>np", "<Cmd>NaviPick<CR>")
   vim.keymap.set("n", "<leader>nc", "<Cmd>NaviClear<CR>")
+  vim.keymap.set("n", "<leader>Te", function()
+    require("neotest").navi.run()
+  end)
 <
 
 vim:tw=78:ts=8:noet:ft=help:norl:
