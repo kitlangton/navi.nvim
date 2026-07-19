@@ -1,0 +1,100 @@
+*navi.txt*                    Source tours for Neovim
+
+==============================================================================
+CONTENTS                                                         *navi-contents*
+
+1. Introduction ................................................. |navi-intro|
+2. Commands ................................................... |navi-commands|
+3. Tour format ................................................. |navi-format|
+4. Lua API ......................................................... |navi-api|
+5. Mappings .................................................... |navi-mappings|
+
+==============================================================================
+INTRODUCTION                                                        *navi-intro*
+
+Navi opens JSON-defined source tour stops, marks each source range, and
+shows a Markdown-like note beneath it with virtual lines. Navi requires
+Neovim 0.10 or newer and has no required dependencies. Telescope is used by
+|:NaviPick| when available; otherwise Navi uses vim.ui.select().
+
+==============================================================================
+COMMANDS                                                          *navi-commands*
+
+                                                    *:NaviLoad*
+:NaviLoad {file}   Validate and load a JSON tour without modifying {file}.
+
+                                                    *:NaviNext*
+:NaviNext          Go to the next stop.
+
+                                                    *:NaviPrev*
+:NaviPrev          Go to the previous stop.
+
+                                                    *:NaviPick*
+:NaviPick          Select a stop with Telescope or vim.ui.select().
+
+                                                    *:NaviClear*
+:NaviClear         End the tour, remove Navi decoration, and restore the
+                   originating window's previous winbar.
+
+==============================================================================
+TOUR FORMAT                                                        *navi-format*
+
+A tour is a non-empty JSON array of stop objects. Each stop has:
+
+  file          Required non-empty string. The file must be readable.
+  message       Required string. Markdown-like note text; may be empty.
+  line          Positive one-based integer start anchor.
+  pattern       Non-empty literal string start anchor.
+  end_line      Optional positive one-based inclusive end anchor.
+  end_pattern   Optional non-empty literal string end anchor.
+
+Specify exactly one of "line" and "pattern". Specify at most one of
+"end_line" and "end_pattern". With no end anchor, the range is one line.
+Patterns are literal. An end pattern searches at and after the resolved start.
+
+All numeric anchors must be within the source file, and the end cannot precede
+the start. Navi validates and resolves the complete tour before replacing the
+active one. Errors identify the stop and field; malformed JSON, unreadable
+files, invalid bounds, and unresolved patterns leave the prior tour intact.
+
+Example: >json
+  [
+    {
+      "file": "src/example.ts",
+      "pattern": "export function example",
+      "end_pattern": "return result",
+      "message": "## Example\n\nReturns the computed **result**."
+    }
+  ]
+<
+
+==============================================================================
+LUA API                                                               *navi-api*
+
+require("navi").load(tour)              *navi.load()*
+    Validate and load either a decoded Lua array of stops or a JSON string.
+    Returns true on success or nil plus an error message on failure.
+
+require("navi").load_file(path)         *navi.load_file()*
+    Read and load a JSON file. The file is never changed or removed.
+
+require("navi").next()                  *navi.next()*
+require("navi").prev()                  *navi.prev()*
+require("navi").goto_stop(index)        *navi.goto_stop()*
+require("navi").pick()                  *navi.pick()*
+require("navi").clear()                 *navi.clear()*
+
+The normalized active state is available as require("navi").stops and
+require("navi").current.
+
+==============================================================================
+MAPPINGS                                                          *navi-mappings*
+
+Navi creates no mappings. Optional examples: >lua
+  vim.keymap.set("n", "]n", "<Cmd>NaviNext<CR>")
+  vim.keymap.set("n", "[n", "<Cmd>NaviPrev<CR>")
+  vim.keymap.set("n", "<leader>np", "<Cmd>NaviPick<CR>")
+  vim.keymap.set("n", "<leader>nc", "<Cmd>NaviClear<CR>")
+<
+
+vim:tw=78:ts=8:noet:ft=help:norl:

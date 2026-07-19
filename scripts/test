@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+
+root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+exec nvim --headless -u NONE \
+  --cmd "set runtimepath^=$root" \
+  --cmd "runtime plugin/navi.lua" \
+  -c "luafile $root/tests/navi.lua" \
+  -c qa
