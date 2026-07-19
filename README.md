@@ -1,5 +1,9 @@
 # navi.nvim
 
+![Navi rendering a Markdown source-tour note beneath a highlighted Lua range](assets/navi-notes.png)
+
+![Navi at the third stop of a guided source tour](assets/navi-navigation.png)
+
 A small Neovim companion for JSON-defined source tours. Navi opens each stop, marks its source range, and renders its Markdown-like note as virtual lines beneath the range.
 
 Navi has no required dependencies. If [Telescope](https://github.com/nvim-telescope/telescope.nvim) is available, `:NaviPick` uses it; otherwise it uses `vim.ui.select`.
